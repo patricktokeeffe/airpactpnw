@@ -8,6 +8,8 @@ from datetime import datetime
 import re
 import requests, urllib
 
+import imageio
+
 
 qd = datetime(2018, 5, 8) # query date
 
@@ -26,7 +28,7 @@ def get_available_species(date):
     #pattern = "airpact5_(?:AQIcolors_)?(\w*)_[0-9]{10}.gif"
     pattern = "airpact5_AQIcolors_(\w*)_[0-9]{10}.gif"
     groups = re.findall(pattern, indexhtm)
-    return list(set(groups))
+    return sorted(list(set(groups)))
 
 
 def get_available_images(date, species):
@@ -39,11 +41,22 @@ def get_available_images(date, species):
 
 
 species = get_available_species(qd) #limited to "24hrPM25" and "8hrO3"
-files = get_available_images(qd, species.pop()) # PM2.5
+spec = species.pop()
+files = get_available_images(qd, spec)
 
 print(species)
 print(files[:3])
 
+images = []
 for f in files:#[:1]:
     print(species_dir+f)
-    urllib.request.urlretrieve(species_dir+f, "img/"+f)
+    local_file = '/tmp/'+f
+    urllib.request.urlretrieve(species_dir+f, local_file)
+
+    images.append(imageio.imread(local_file))
+
+imageio.mimsave(spec+".gif", images)
+
+
+
+

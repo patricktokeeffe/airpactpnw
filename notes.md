@@ -37,5 +37,8 @@ There are some generic timestamp labels (and specific date labels) here:
 
 
 
+### Downloading
+
+Easier to use `urllib` than `requests` <https://stackoverflow.com/q/13137817/2946116>
 
 
