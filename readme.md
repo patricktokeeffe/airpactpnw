@@ -1,4 +1,4 @@
 # Twitter Bot - @AirpactPNW
 
-[AIRPACT](airpact.wsu.edu) brought to Twitter
+[AIRPACT](http://airpact.wsu.edu) brought to Twitter
 
