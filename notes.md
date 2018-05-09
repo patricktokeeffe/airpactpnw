@@ -42,3 +42,9 @@ There are some generic timestamp labels (and specific date labels) here:
 Easier to use `urllib` than `requests` <https://stackoverflow.com/q/13137817/2946116>
 
 
+## Text overlays
+
+* <https://stackoverflow.com/questions/10640114/overlay-two-same-sized-images-in-python>
+* <https://docs.opencv.org/2.4.8/modules/core/doc/drawing_functions.html?highlight=puttext#cv2.putText>
+
+
