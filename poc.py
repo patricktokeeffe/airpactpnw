@@ -6,27 +6,44 @@
 from datetime import datetime
 
 import re
-import requests
+import requests, urllib
 
 
 qd = datetime(2018, 5, 8) # query date
 
 # directories
 base_uri = "http://lar.wsu.edu/airpact/gmap/ap5/images/anim/"
-species_dir = base_uri + "species/{date:%Y}/{date:%Y_%m_%d}/"
+species_dir = base_uri + "species/{date:%Y}/{date:%Y_%m_%d}/".format(date=qd)
 resource_dir = base_uri + "date_time_labels/"
+
+# source file list
+indexhtm = requests.get(species_dir).text
 
 
 def get_available_species(date):
-    # parse index.htm and extract unique file groups
-    indexhtm = requests.get(species_dir.format(date=date)).text
-
-    # locate gif images name in index.htm & extract species group
-    pattern = "airpact5_(?:AQIcolors_)?(\w*)_[0-9]{10}.gif"
-    #pattern = "airpact5_AQIcolors_(\w*)_[0-9]{10}.gif"
+    """parse index.htm and extract unique file groups"""
+    # locate gif image names in index.htm & extract species groups
+    #pattern = "airpact5_(?:AQIcolors_)?(\w*)_[0-9]{10}.gif"
+    pattern = "airpact5_AQIcolors_(\w*)_[0-9]{10}.gif"
     groups = re.findall(pattern, indexhtm)
-    species = set(groups)
+    return list(set(groups))
 
-    return species
 
-print(get_available_species(qd))
+def get_available_images(date, species):
+    """extract entire file names for single species from index.htm"""
+    # locate entire file names
+    pattern = "(airpact5_AQIcolors_{species}_[0-9]{{10}}.gif)".format(species=species)
+    groups = re.findall(pattern, indexhtm)
+    
+    return groups
+
+
+species = get_available_species(qd) #limited to "24hrPM25" and "8hrO3"
+files = get_available_images(qd, species.pop()) # PM2.5
+
+print(species)
+print(files[:3])
+
+for f in files:#[:1]:
+    print(species_dir+f)
+    urllib.request.urlretrieve(species_dir+f, "img/"+f)
