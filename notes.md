@@ -50,6 +50,7 @@ Easier to use `urllib` than `requests` <https://stackoverflow.com/q/13137817/294
 * <https://docs.opencv.org/2.4.8/modules/core/doc/drawing_functions.html?highlight=puttext#cv2.putText>
 * <https://github.com/python-pillow/Pillow/issues/1592#issuecomment-291573715> hint: `.convert('RBGA')
 * <http://effbot.org/imagingbook>
+* <https://docs.python.org/3.5/library/datetime.html>
 
 ```
 import PIL

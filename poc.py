@@ -13,7 +13,7 @@ import PIL
 from PIL import Image, ImageFont, ImageDraw
 
 
-qd = datetime(2018, 5, 6) # query date
+qd = datetime.now()#(2018, 5, 6) # query date
 
 # directories
 base_uri = "http://lar.wsu.edu/airpact/gmap/ap5/images/anim/"
@@ -58,6 +58,9 @@ print(files[:3])
 #imgsize = (345, 300)
 imgsize = (259, 225)
 background = Image.open('img/map_bg.png').resize(imgsize, Image.LANCZOS)
+datefont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 18)
+titlefont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 20)
+title = "AIRPACT PM2.5"
 
 images = []
 for f in files:#[:1]:
@@ -71,8 +74,19 @@ for f in files:#[:1]:
     fg = fg.resize(imgsize, Image.LANCZOS)
     bg = background.copy()
     bg.paste(fg, (0,0), fg)
-    bg.save(local_file) #overwrites
 
+    # overlay timestamp label
+    draw = ImageDraw.Draw(bg)
+    ts = datetime.strptime(f[-14:], "%Y%m%d%H.gif")
+    tslbl = ts.strftime("%a, %b %e %Y, %I %p")
+    w, h = draw.textsize(tslbl, font=datefont)
+    draw.text(((imgsize[0]-w)/2, imgsize[1]-h-15), tslbl, (20,20,20), font=datefont)
+
+    # and a title
+    w, h = draw.textsize(title, font=titlefont)
+    draw.text(((imgsize[0]-w)/2,10), title, (20,20,20), font=titlefont)
+
+    bg.save(local_file, optimize=True) #overwrites
     images.append(imageio.imread(local_file))
 
 imageio.mimsave(spec+".gif", images)
