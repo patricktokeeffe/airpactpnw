@@ -9,6 +9,8 @@ import re
 import requests, urllib
 
 import imageio
+import PIL
+from PIL import Image, ImageFont, ImageDraw
 
 
 qd = datetime(2018, 5, 6) # query date
@@ -51,11 +53,25 @@ files = get_available_images(qd, spec)
 print(species)
 print(files[:3])
 
+#imgsize = (863, 751)
+#imgsize = (432, 376)
+#imgsize = (345, 300)
+imgsize = (259, 225)
+background = Image.open('img/map_bg.png').resize(imgsize, Image.LANCZOS)
+
 images = []
 for f in files:#[:1]:
-    #print(species_dir+f)
     local_file = 'tmp/'+f
+
+    # download image from webserver
     urllib.request.urlretrieve(species_dir+f, local_file)
+
+    # overlay on map background
+    fg = Image.open(local_file).convert('RGBA')
+    fg = fg.resize(imgsize, Image.LANCZOS)
+    bg = background.copy()
+    bg.paste(fg, (0,0), fg)
+    bg.save(local_file) #overwrites
 
     images.append(imageio.imread(local_file))
 
