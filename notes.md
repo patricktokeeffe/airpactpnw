@@ -5,12 +5,34 @@
 1. Post daily forecasts as animated gif
     * just PM2.5 and O3 AQI for now
     * expand to other species later
-2. Post alerts when AQI exceeds certain thresholds
-    * mention/hashtag affected counties
-    * include some kind of forecast trust 
+2. Mention/hashtag affected localities (city/county/tribe/?) when
+    * AQI exceeds certain thresholds
+    * sensitive population air advisements would be issued
+    * relative hot spots appear
+    * in relation to wildfire events
 
+More thoughts:
 
+* aggregation: eg "airpact predicts elevated ozone in x, y, z"
+* develop set of emoji for communicating data
 
+Other post types
+
+* data commentary
+    * say something positive when it all looks clear?
+    * periodic reminders it's a forecast, disclaimer, etc
+* news
+    * new releases, features
+    * bug fixes
+    * newsletter announcements, such as meeting dates?
+    * periodic ticklers about other info available on airpact site
+* quality reports
+    * reply to previous posts with model performance data?
+    * observations vs model at random subset of sites
+    * self-report when model strays far beyond observations
+    * self-congratulate when model performs very well on particular day
+* wildfire
+    * ?
 
 
 
