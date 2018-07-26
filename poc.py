@@ -82,6 +82,9 @@ for f in img_files:
     fg = Image.open(f).convert('RGBA')
     
     fg = fg.resize(imgsize, Image.LANCZOS)
+    mask = Image.open(f).convert('L')
+    mask = mask.resize(imgsize, Image.LANCZOS)
+    fg.putalpha(mask)
     bg = background.copy()
     bg.paste(fg, (0,0), fg)
 

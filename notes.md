@@ -105,11 +105,15 @@ bg.save('bg.gif')
 
 more todo:
 
-* adjust opacity of overlays (70% is airpact default)
+* ~~adjust opacity of overlays (70% is airpact default)~~
 * overlay domain border, county/state borders
 
 
+#### Add alpha to transparent overlay
 
+* <https://stackoverflow.com/questions/890051/how-do-i-generate-circular-thumbnails-with-pil>
+    * pointed me towards success with alpha masking opaque parts of airpact gifs
+    * load image second time in black and white to use as alpha mask
 
 
 
