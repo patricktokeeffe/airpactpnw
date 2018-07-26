@@ -4,12 +4,12 @@
 # Patrick O'Keeffe
 
 from datetime import datetime
+import os
 
 import re
 import requests, urllib
 
 import imageio
-import PIL
 from PIL import Image, ImageFont, ImageDraw
 
 
@@ -48,10 +48,10 @@ def get_available_images(date, species):
 species = get_available_species(qd) #limited to "24hrPM25" and "8hrO3"
 #spec = '24hrPM25' #species.pop()
 spec = 'PM25'
-files = get_available_images(qd, spec)
+img_list = sorted(list(set(get_available_images(qd, spec))))
 
 print(species)
-print(files[:3])
+print(img_list)
 
 #imgsize = (863, 751)
 #imgsize = (432, 376)
@@ -62,15 +62,25 @@ datefont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
 titlefont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 20)
 title = "AIRPACT PM2.5"
 
-images = []
-for f in files:#[:1]:
-    local_file = 'tmp/'+f
+img_files = []
+if len(os.listdir('tmp/')):
+    print('found downloaded files... proceeding')
+    img_files = ['tmp/'+f for f in sorted(os.listdir('tmp/'))]
+else:
+    print('downloading source files...')
+    for img_name in img_list:#[:1]:
+        local_file = 'tmp/'+img_name
+    
+        # download image from webserver
+        urllib.request.urlretrieve(species_dir+img_name, local_file)
+        img_files.append(local_file)
 
-    # download image from webserver
-    urllib.request.urlretrieve(species_dir+f, local_file)
-
+    
+gif_frames = []
+for f in img_files:
     # overlay on map background
-    fg = Image.open(local_file).convert('RGBA')
+    fg = Image.open(f).convert('RGBA')
+    
     fg = fg.resize(imgsize, Image.LANCZOS)
     bg = background.copy()
     bg.paste(fg, (0,0), fg)
@@ -87,9 +97,9 @@ for f in files:#[:1]:
     draw.text(((imgsize[0]-w)/2,10), title, (20,20,20), font=titlefont)
 
     bg.save(local_file, optimize=True) #overwrites
-    images.append(imageio.imread(local_file))
+    gif_frames.append(imageio.imread(local_file))
 
-imageio.mimsave(spec+".gif", images)
+imageio.mimsave(spec+".gif", gif_frames)
 
 
 
