@@ -45,6 +45,15 @@ def get_available_images(date, species):
     return groups
 
 
+def optimize_gif(fpath):
+    """Run `gifsicle` to reduce gif file size"""
+    from subprocess import run
+    oname = fpath[:-4]+'_lossy'+fpath[-4:]
+    rc = run(['./gifsicle-static', '-O3', '--lossy={0}'.format(30), '-o',
+              oname, fpath])
+    return rc
+    
+    
 species = get_available_species(qd) #limited to "24hrPM25" and "8hrO3"
 #spec = '24hrPM25' #species.pop()
 spec = 'PM25'
@@ -53,10 +62,8 @@ img_list = sorted(list(set(get_available_images(qd, spec))))
 print(species)
 print(img_list)
 
-#imgsize = (863, 751)
-#imgsize = (432, 376)
-#imgsize = (345, 300)
-imgsize = (259, 225)
+imgsize = (505, 439) # roughly native size on twitter web client, i think?
+
 background = Image.open('img/map_bg.png').resize(imgsize, Image.LANCZOS)
 datefont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 18)
 titlefont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 20)
@@ -102,8 +109,8 @@ for f in img_files:
     bg.save(local_file, optimize=True) #overwrites
     gif_frames.append(imageio.imread(local_file))
 
-imageio.mimsave(spec+".gif", gif_frames)
-
+imageio.mimsave(spec+".gif", duration=1, gif_frames)
+optimize_gif(spec+".gif")
 
 
 
