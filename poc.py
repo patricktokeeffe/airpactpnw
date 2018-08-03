@@ -253,7 +253,7 @@ class Airpact():
             print('Using cached file set:')
             for img in cached_images:
                 print(img)
-        return cached_images
+        return sorted(cached_images)
 
         
     def optimize_gif(self, fpath):
