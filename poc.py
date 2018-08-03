@@ -28,6 +28,8 @@ class Airpact():
 
         self._gif_map_bg = 'img/map_bg.png'
         self._gif_map_dims = (505, 439)
+        self._gif_legend = 'img/legend_{name}.jpg' # .format{name=overlay}
+        self._gif_logo = 'img/wsu_shield.jpg'
         self._gif_font = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
         self._gif_resize_f = Image.LANCZOS
         
@@ -50,7 +52,7 @@ class Airpact():
                                  'overlay_file': 'airpact5_{name}_{date}.gif',
                                  'overlay_date_fmt': '%Y%m%d%H',
                                  'overlay_date_re': '[0-9]{10}',
-                                 'label_long': 'Ozone 8hr average',
+                                 'label_long': 'Ozone',
                                  'label_abbv': 'O3-8hr',
                                  'label_unit': 'ppb',
                                  'desc': '8hr avg #ozone conc (#AQI colors)'},
@@ -296,18 +298,12 @@ class Airpact():
                 
         background = Image.open(self._gif_map_bg).resize(self._gif_map_dims, 
                                                          self._gif_resize_f)
-        datefont = ImageFont.truetype(self._gif_font, 18)
-        titlefont = ImageFont.truetype(self._gif_font, 20)
-                
         meta = self._sources[overlay]
         img_sources = self.get_overlay_images(overlay, date=date)
         if not img_sources:
             print("Could not locate imagery for overlay on this date: aborting..")
             return ''
-        
-        title = "#AIRPACT {name} ({abbv}) forecast".format(
-            name=meta['label_long'], abbv=meta['label_abbv'])
-        
+               
         frame_dir = osp.join(self._cache_dir_base,
                              self._cache_dir_gifs,
                              meta['overlay_path'].format(date=date),
@@ -316,6 +312,12 @@ class Airpact():
         
         gif_frames = []
         for f in img_sources:
+            # create blank canvas to build on
+            # XXXX maybe construct canvas size around map size?
+            canvas_dims = (620,550)
+            img = Image.new("RGBA", canvas_dims, (255, 255, 255, 255))
+            draw = ImageDraw.Draw(img)
+            
             # load source image with transparency
             fg = Image.open(f).convert('RGBA')
             fg = fg.resize(self._gif_map_dims, self._gif_resize_f)
@@ -336,26 +338,70 @@ class Airpact():
                             pixdata[x, y] = (255, 255, 255, 0)                
             
             # overlay alpha-ed source on map background
-            bg = background.copy()
-            bg.paste(fg, (0,0), fg)
+            anim = background.copy()
+            anim.paste(fg, (0,0), fg)
+
+            # place on canvas with nice border
+            anim_pos = (10, 45)
+            anim_border = tuple(sum(x) for x in zip(anim_pos, anim.size))
+            img.paste(anim, anim_pos)
+            draw.rectangle((anim_pos, anim_border), outline="black")
+            
+            # put legend on right-hand side centered wrt map and right edge
+            legend = Image.open(self._gif_legend.format(name=overlay))
+            assert anim.size[1] > legend.size[1], "Sorry! the animation must be taller than the legend!"
+            legend_lbuff = round((canvas_dims[0]-anim_border[0])/2 - legend.size[0]/2) 
+            legend_tbuff = round((anim_border[1]-anim_pos[1])/2 - legend.size[1]/2)
+            legend_pos = (anim_border[0]+legend_lbuff, anim_pos[1]+legend_tbuff)
+            img.paste(legend.convert('RGBA'), legend_pos)
         
-            # overlay timestamp label
-            draw = ImageDraw.Draw(bg)
+            #FIXME
+            font_color = (152,30,50)
+            
+            # overlay timestamp date label
+            date_font = ImageFont.truetype(self._gif_font, 18)
             ts = datetime.strptime(f[-14:], "%Y%m%d%H.gif")
-            tslbl = ts.strftime("%a, %b %e %Y, %I %p")
-            w, h = draw.textsize(tslbl, font=datefont)
-            draw.text(((self._gif_map_dims[0]-w)/2, self._gif_map_dims[1]-h-15),
-                        tslbl, (20,20,20), font=datefont)
+            centerline = round(0.75*anim_border[0])
+            date_text = ts.strftime("%a, %b %e %Y")
+            date_size = draw.textsize(date_text, date_font)
+            date_pos = (centerline - round(date_size[0]/2), anim_border[1]+10)
+            draw.text(date_pos, date_text, fill=font_color, font=date_font)
+            # also the time
+            time_text = ts.strftime("%-I:%M %p (PST)")
+            time_size = draw.textsize(time_text, date_font)
+            time_pos = (centerline - round(time_size[0]/2), date_pos[1]+date_size[1])
+            draw.text(time_pos, time_text, fill=font_color, font=date_font)
+            
+            # place overlay title along the top
+            titlefont = ImageFont.truetype(self._gif_font, 22)
+            title = "{name} ({abbv}) forecast".format(name=meta['label_long'], 
+                                                      abbv=meta['label_abbv'])
+            title_size = draw.textsize(title, font=titlefont)
+            title_pos = ((canvas_dims[0]-title_size[0])/2, 10)
+            #title_pos = ((anim_border[0]-title_size[0])/2+anim_pos[0],
+            #             (anim_border[1]+10))
+            draw.text(title_pos, title, fill=font_color, font=titlefont)
         
-            # and a title
-            w, h = draw.textsize(title, font=titlefont)
-            draw.text(((self._gif_map_dims[0]-w)/2, 10),
-                        title, (20,20,20), font=titlefont)
-        
+            # put logo in bottom corner, centered between image and edge
+            logo = Image.open(self._gif_logo).convert("RGBA")
+            logo_tbuff = round((canvas_dims[1]-anim_border[1])/2 - logo.size[1]/2)
+            logo_pos = (20, anim_border[1]+logo_tbuff)
+            img.paste(logo, logo_pos)
+            
+            # add taglines, anchored to logo
+            hashtag_pos = (logo_pos[0]+logo.size[0]+5, logo_pos[1]+10)
+            hashtag_text = "#AIRPACT"
+            hashtag_size = draw.textsize(hashtag_text, font=titlefont)
+            draw.text(hashtag_pos, hashtag_text, fill=font_color, font=titlefont)
+            url_font = ImageFont.truetype(self._gif_font, 14)
+            url_text = "airpact.wsu.edu"
+            url_pos = (hashtag_pos[0], hashtag_pos[1]+hashtag_size[1]+5)
+            draw.text(url_pos, url_text, fill="blue", font=url_font)
+            
             # save as new file, preserving cached source image
             fname = osp.basename(f)
             o = osp.join(frame_dir, fname)
-            bg.save(o, optimize=True)
+            img.save(o, optimize=True)
             gif_frames.append(imageio.imread(o))
         
         oname = "out_"+overlay+"_{date:%Y%m%d}.gif".format(date=date)
@@ -371,10 +417,10 @@ qd = datetime(2018, 7, 31)
 spec = 'AQIcolors_24hrPM25'
 #spec = 'AQIcolors_08hrO3'
 
-#overlay_gif = airpact.create_gif(spec, qd)
-#airpact.optimize_gif(overlay_gif)
+overlay_gif = airpact.create_gif(spec, qd)
+airpact.optimize_gif(overlay_gif)
 
-for spec in airpact.overlays:
-    overlay_gif = airpact.create_gif(spec, qd)
-    airpact.optimize_gif(overlay_gif)
+#for spec in airpact.overlays:
+#    overlay_gif = airpact.create_gif(spec, qd)
+#    airpact.optimize_gif(overlay_gif)
 
