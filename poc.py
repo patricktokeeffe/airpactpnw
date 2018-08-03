@@ -324,6 +324,17 @@ class Airpact():
             mask = Image.open(f).convert('L')
             mask = mask.resize(self._gif_map_dims, self._gif_resize_f)
             fg.putalpha(mask)
+            
+            # HACK fixup AQIcolors images to have transparency
+            # outside overlay boundaries by alpha'ing white
+            if 'AQIcolors' in overlay:
+                print("Warning: fixing alpha channel in "+osp.basename(f))
+                pixdata = fg.load()
+                for y in range(fg.size[1]):
+                    for x in range(fg.size[0]):
+                        if pixdata[x, y] == (255, 255, 255, 255):
+                            pixdata[x, y] = (255, 255, 255, 0)                
+            
             # overlay alpha-ed source on map background
             bg = background.copy()
             bg.paste(fg, (0,0), fg)
