@@ -3,6 +3,7 @@
 # proof of concept
 # Patrick O'Keeffe
 
+import os, os.path as osp
 from glob import glob
 
 import imageio
@@ -19,7 +20,7 @@ class Airpact():
         
         Params
         ------
-        date : datetime.datetime
+        date : datetime.datetime, optional
             If `date` is `None`, initalizes AIRPACT metadata assuming current
             date from local computer clock
         """
@@ -31,9 +32,14 @@ class Airpact():
         self._gif_resize_f = Image.LANCZOS
         
         self._indexhtm = ""
-        #self._refresh(date=date)
-
+        self._cache_dir_base = 'tmp'
+        self._cache_dir_srcs = 'img_sources'
+        self._cache_dir_gifs = 'gif_frames'
+        self._cache = {}
+        
         self._sources = {
+            # HINT key is overlay name, gets used in certain string subs
+            #
             # SPECIES
             #'08hrO3': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
             #'24hrPM25': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
@@ -41,34 +47,42 @@ class Airpact():
             #'AOD': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
             #'AOMIJ': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
             'AQIcolors_08hrO3': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
-                                 'overlay_img': 'airpact5_{name}_{date:%Y%m%d}.gif',
+                                 'overlay_file': 'airpact5_{name}_{date}.gif',
+                                 'overlay_date_fmt': '%Y%m%d%H',
+                                 'overlay_date_re': '[0-9]{10}',
                                  'label_long': 'Ozone 8hr average',
                                  'label_abbv': 'O3-8hr',
                                  'label_unit': 'ppb',
                                  'desc': '8hr avg #ozone conc (#AQI colors)'},
             'AQIcolors_24hrPM25': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
-                                   'overlay_img': 'airpact5_{name}_{date:%Y%m%d}.gif',
-                                   'label_long': 'Fine particulate',
-                                   'label_abbv': 'PM2.5-24hr',
-                                   'label_unit': 'ug/m3',
-                                   'desc': '24hr avg #PM25 conc (#AQI colors)'},
+                                 'overlay_file': 'airpact5_{name}_{date}.gif',
+                                 'overlay_date_fmt': '%Y%m%d%H',
+                                 'overlay_date_re': '[0-9]{10}',
+                                 'label_long': 'Fine particulate',
+                                 'label_abbv': 'PM2.5-24hr',
+                                 'label_unit': 'ug/m3',
+                                 'desc': '24hr avg #PM25 conc (#AQI colors)'},
             #'CO': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
             #'HCHO': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
             #'ISOPRENE': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
             #'NH3': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
             #'NOx': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
             'O3': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
-                  'overlay_img': 'airpact5_{name}_{date:%Y%m%d}.gif',
-                  'label_long': 'Ozone',
-                  'label_abbv': 'O3',
-                  'label_unit': 'ppb',
-                  'desc': 'hourly #ozone conc'},
+                                   'overlay_file': 'airpact5_{name}_{date}.gif',
+                                   'overlay_date_fmt': '%Y%m%d%H',
+                                   'overlay_date_re': '[0-9]{10}',
+                                   'label_long': 'Ozone',
+                                   'label_abbv': 'O3',
+                                   'label_unit': 'ppb',
+                                   'desc': 'hourly #ozone conc'},
             'PM25': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
-                     'overlay_img': 'airpact5_{name}_{date:%Y%m%d}.gif',
-                     'label_long': 'Fine particulate',
-                     'label_abbv': 'PM2.5',
-                     'label_unit': 'ug/m3',
-                     'desc': 'hourly fine aerosol (#PM25) conc'},
+                                     'overlay_file': 'airpact5_{name}_{date}.gif',
+                                     'overlay_date_fmt': '%Y%m%d%H',
+                                     'overlay_date_re': '[0-9]{10}',
+                                     'label_long': 'Fine particulate',
+                                     'label_abbv': 'PM2.5',
+                                     'label_unit': 'ug/m3',
+                                     'desc': 'hourly fine aerosol (#PM25) conc'},
             #'SO2': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
             #'VIS': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
             #'VOCs': {'overlay_path': 'species/{date:%Y}/{date:%Y_%m_%d}/',
@@ -95,7 +109,6 @@ class Airpact():
             #'VI': {'overlay_path': 'meteorology/{date:%Y}/{date:%Y_%m_%d}/',
             #'WIND': {'overlay_path': 'meteorology/{date:%Y}/{date:%Y_%m_%d}/',
                    }
-        self._source_overlay_dirs = set(v['overlay_path'] for v in self._sources.values())
                    
         self.overlays = sorted(list(self._sources.keys()))
         #self.species_list = self.get_species_list(date=date)
@@ -110,56 +123,137 @@ class Airpact():
         ------
         overlay : str
             Valid options are listed in `airpact.overlays`
-        date : datetime.datetime
+        date : datetime.datetime, optional
             If `date` is `None`, assumes current date from local computer clock
         """
         if date is None:
             date = datetime.now()
         else:
-            assert isinstance(date, datetime)
+            assert isinstance(date, datetime), "`date` must be `datetime.datetime` or None"
         httpresp = requests.get(self._server_uri + 
                                 self._sources[overlay]['overlay_path'].format(date=date))
         self._indexhtm = httpresp.text
 
 
-    def get_overlay_list(self, overlay, date=None):
+    def get_overlay_list(self, date=None):
         """Return list of overlays with imagery products for given date
         
         Params
         ------
-        overlay : str
-            THIS OPTION SHOULD BE REMOVED
-        date : datetime.datetime
-            If `date` is `None`, assumes current date from local computer clock
-            
-        TODO: remove need to specify a species to search for
+        date : datetime.datetime, optional
+            If `date` is `None`, assumes current date from local computer clock            
         """
-        # FIXME instead of naive length check, should probably have some kind
-        # of date recognition to avoid sutble errors.. TODO implement date-based
-        # caching of index contents, species availability, and species imagery
-        if not len(self._indexhtm):
-            print("Refreshing index") # XXXX DEBUG
-            self._refresh(overlay, date=date)
-        pattern = "airpact5_(\w*)_[0-9]{10}.gif"
-        groups = re.findall(pattern, self._indexhtm)
-        return sorted(list(set(groups)))
+        if date is None:
+            date = datetime.now()
+        else:
+            assert isinstance(date, datetime), "`date` must be `datetime.datetime` or None"
+        print("Retrieving image overlay list for {date:%Y-%m-%d}..".
+              format(date=date))
+
+        prefixes = set(v['overlay_file'].split('_')[0] for v in self._sources.values())
+        prefix_re = '(?:' + '|'.join(prefixes) + ')'
+        image_re = prefix_re+"_(\w*)_[0-9]{10}.gif"
+        image_set = set()
+
+        # for each unique overlay path:
+        for path in set(v['overlay_path'] for v in self._sources.values()):
+            uri = self._server_uri + path.format(date=date)
+            print('Searching in {0}..'.format(uri), end=' ')
+            indexhtm = requests.get(uri).text
+            groups = set(re.findall(image_re, indexhtm))
+            print('found {0} overlays'.format(len(groups)))
+            image_set |= groups
+            
+        overlays = sorted(list(image_set))
+        print('{0} overlays available: {1}'.format(len(overlays),
+                                                   ', '.join(overlays)))
+        return overlays
     
-    
-    def get_species_images(self, species, date=None):
-        """Return list of image URIs for single species for given date
+        
+    def get_overlay_image_list(self, overlay, date=None):
+        """Return list of image URIs for overlay on given date
         
         Params
         ------
-        date : datetime.datetime
-            If `date` is `None`, assumes current date from local computer clock
+        overlay : str
+            Valid options are listed in `airpact.overlays`
+        date : datetime.datetime, optional
+            If `date` is `None`, assumes current date from local computer clock            
         """
-        # TODO? permit asterisk "*" for all species?
-        if not len(self._indexhtm):
-            print("Refreshing index") # XXXX DEBUG
-            self._refresh(date=date)
-        pattern = "(airpact5_{species}_[0-9]{{10}}.gif)".format(species=species)
-        groups = re.findall(pattern, self._indexhtm)
-        return sorted(list(set(groups)))
+        if date is None:
+            date = datetime.now()
+        else:
+            assert isinstance(date, datetime), "`date` must be `datetime.datetime` or None"
+        print("Retrieving image list for {name} on {date:%Y-%m-%d}..".
+              format(name=overlay, date=date))
+
+        meta = self._sources[overlay]
+        path = meta['overlay_path']
+        #prefix = meta['overlay_file'].split('_')[0]
+        image_re = meta['overlay_file'].format(name=overlay, 
+                                               date=meta['overlay_date_re'])
+        uri = self._server_uri + path.format(date=date)
+        print('Searching in {0}..'.format(uri))
+        # HINT if date not found, returns 404... if 404, still receive text
+        # but it's the 404 notice so definitely no images will be found.. OK
+        indexhtm = requests.get(uri).text
+        images = set(re.findall(image_re, indexhtm))
+            
+        overlays = sorted(list(images))
+        print('Found {0} images: {1}'.format(len(overlays),
+                                             ', '.join(overlays)))
+        return [uri+o for o in overlays]
+    
+    
+    def get_overlay_images(self, overlay, date=None, reload_cache=False):
+        """Return image file paths for overlay on date specified
+        
+        Params
+        ------
+        overlay : str
+            Valid options are listed in `airpact.overlays`
+        date : datetime.datetime, optional
+            If `date` is `None`, assumes current date from local computer clock
+        reload_cache : boolean, optional
+            If `True`, ignores previously downloaded (cached) files
+            
+        Returns
+        -------
+        List of strings representing full file paths to downloaded images.
+        """
+        if date is None:
+            date = datetime.now()
+        else:
+            assert isinstance(date, datetime), "`date` must be `datetime.datetime` or None"
+        print("Retrieving {name} overlay imagery for {date:%Y-%m-%d}..".
+              format(name=overlay, date=date))
+        
+        meta = self._sources[overlay]
+        cache_dir = osp.join(self._cache_dir_base, 
+                             self._cache_dir_srcs,
+                             meta['overlay_path'].format(date=date),
+                             overlay) # HINT for sanity's sake
+        
+        cached_images = glob(osp.join(cache_dir, '*_'+overlay+'_*'))
+        if reload_cache or not cached_images:
+            msg = 'Ignoring cache files.' if reload_cache else 'Cache not found.'
+            print('{0} Downloading files..'.format(msg))
+            cached_images = []
+            for img_uri in self.get_overlay_image_list(overlay, date):
+                img_name = img_uri.split('/')[-1]
+                local_path = osp.join(cache_dir, img_name)
+                
+                os.makedirs(cache_dir, exist_ok=True)
+                urllib.request.urlretrieve(img_uri, local_path)
+                print('Saved file to ', local_path)
+                cached_images.append(local_path)
+        else:
+            # TODO FIXME check cached file set against hosted web version
+            # to identify missing files
+            print('Using cached file set:')
+            for img in cached_images:
+                print(img)
+        return cached_images
 
         
     def optimize_gif(self, fpath):
@@ -171,7 +265,8 @@ class Airpact():
             Full path to unoptimized gif
         """
         from subprocess import run
-        oname = fpath[:-4]+'_lossy'+fpath[-4:]
+        oname = fpath[:-4]+'_lossy'+fpath[-4:] # suffix
+        #oname = 'lossy_'+fpath # prefix
         rc = run(['./gifsicle-static', '-O3', '--lossy={0}'.format(30),
                   '--colors=256', '-o {0}'.format(oname), fpath])
         return rc
@@ -187,58 +282,44 @@ class Airpact():
         date : datetime.datetime, optional
             If `date` is `None`, assumes current date from local computer clock
         
-        
-        TODO: abstract back to just 'overlay' and 'date', may need to overhaul
-        `self._refresh()` to accomodate different overlays
+        Returns
+        -------
+        String containing full path to created gif
         """
-        print("\n\ncreating gif for "+overlay)
+        print("Creating gif for overlay: "+overlay)
         assert overlay in self.overlays, "Specified unavailable overlay; see `airpact.overlays`"
         
-        avail_overlays = self.get_overlay_list(overlay, date)
-        assert overlay in avail_overlays, "Specified overlay not found for this date; try `airpact.get_species_list()`"
-
         if date is None:
             date = datetime.now()
         else:
             assert isinstance(date, datetime)
-        
-        meta = self._sources[overlay]
-        img_list = airpact.get_species_images(overlay)
-        img_files = []
-        cached_files = sorted([f for f in glob('tmp/*'+overlay+'*.gif') 
-                            if 'gif_' not in f])
-        print('cached files: ', cached_files)
-        if len(cached_files):
-            print('found downloaded files... proceeding')
-            img_files = cached_files
-        else:
-            print('downloading source files...')
-            for img_name in img_list:#[:1]:
-                local_file = 'tmp/'+img_name
-                remote_file = (self._server_uri +
-                               meta['overlay_path'].format(date=date) +
-                               img_name)
-                print(remote_file)
-                urllib.request.urlretrieve(remote_file, local_file)
-                img_files.append(local_file)
-
                 
         background = Image.open(self._gif_map_bg).resize(self._gif_map_dims, 
                                                          self._gif_resize_f)
-        
         datefont = ImageFont.truetype(self._gif_font, 18)
         titlefont = ImageFont.truetype(self._gif_font, 20)
+                
+        meta = self._sources[overlay]
+        img_sources = self.get_overlay_images(overlay, date=date)
+        if not img_sources:
+            print("Could not locate imagery for overlay on this date: aborting..")
+            return ''
         
         title = "#AIRPACT {name} ({abbv}) forecast".format(
             name=meta['label_long'], abbv=meta['label_abbv'])
-
+        
+        frame_dir = osp.join(self._cache_dir_base,
+                             self._cache_dir_gifs,
+                             meta['overlay_path'].format(date=date),
+                             overlay) # HINT for sanity's sake
+        os.makedirs(frame_dir, exist_ok=True)
         
         gif_frames = []
-        for f in img_files:
+        for f in img_sources:
             # load source image with transparency
             fg = Image.open(f).convert('RGBA')
             fg = fg.resize(self._gif_map_dims, self._gif_resize_f)
-            
+
             # load B&W version for alpha-masking non-transparent areas
             mask = Image.open(f).convert('L')
             mask = mask.resize(self._gif_map_dims, self._gif_resize_f)
@@ -261,19 +342,28 @@ class Airpact():
                         title, (20,20,20), font=titlefont)
         
             # save as new file, preserving cached source image
-            o = f.replace('gif_','').replace('airpact5', 'gif_airpact5')
+            fname = osp.basename(f)
+            o = osp.join(frame_dir, fname)
             bg.save(o, optimize=True)
             gif_frames.append(imageio.imread(o))
         
-        imageio.mimwrite(overlay+".gif", gif_frames, duration=0.75)
-            
+        oname = "out_"+overlay+"_{date:%Y%m%d}.gif".format(date=date)
+        imageio.mimwrite(oname, gif_frames, duration=0.75)
+        return oname
         
 airpact = Airpact()
 
 
-qd = None#datetime(2018, 7, 28)
-spec = 'PM25'
+qd = datetime(2018, 7, 31)
+#spec = 'PM25'
+#spec = 'O3'
+spec = 'AQIcolors_24hrPM25'
+#spec = 'AQIcolors_08hrO3'
 
-airpact.create_gif(spec, qd)
-airpact.optimize_gif(spec+".gif")
+#overlay_gif = airpact.create_gif(spec, qd)
+#airpact.optimize_gif(overlay_gif)
+
+for spec in airpact.overlays:
+    overlay_gif = airpact.create_gif(spec, qd)
+    airpact.optimize_gif(overlay_gif)
 
