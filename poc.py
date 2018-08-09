@@ -192,6 +192,11 @@ class Airpact():
               format(name=overlay, date=date))
 
         meta = self._sources[overlay]
+        cache_dir = osp.join(self._cache_dir_base, 
+                             self._cache_dir_srcs,
+                             meta['overlay_path'].format(date=datetime.now()))
+        os.makedirs(cache_dir, exist_ok=True)
+        
         path = meta['overlay_path']
         #prefix = meta['overlay_file'].split('_')[0]
         image_re = meta['overlay_file'].format(name=overlay, 
@@ -201,6 +206,9 @@ class Airpact():
         # HINT if date not found, returns 404... if 404, still receive text
         # but it's the 404 notice so definitely no images will be found.. OK
         indexhtm = requests.get(uri).text
+        with open(osp.join(cache_dir, 'index_{date:%Y%m%d_%H%M}.html'.format(
+                                           date=date)), 'w') as f:
+            f.write(indexhtm)
         images = set(re.findall(image_re, indexhtm))
             
         overlays = sorted(list(images))
@@ -276,7 +284,7 @@ class Airpact():
         return rc
         
         
-    def create_gif(self, overlay, date=None):
+    def create_gif(self, overlay, date=None, reload_cache=True):
         """Create animated gif of overlay for specified date
         
         Params
@@ -301,7 +309,7 @@ class Airpact():
         background = Image.open(self._gif_map_bg).resize(self._gif_map_dims, 
                                                          self._gif_resize_f)
         meta = self._sources[overlay]
-        img_sources = self.get_overlay_images(overlay, date=date)
+        img_sources = self.get_overlay_images(overlay, date=date, reload_cache=reload_cache)
         if not img_sources:
             print("Could not locate imagery for overlay on this date: aborting..")
             return ''
@@ -413,16 +421,18 @@ class Airpact():
 airpact = Airpact()
 
 
-qd = datetime(2018, 7, 31)
+qd = None
+#qd = datetime(2018, 8, 5)
 #spec = 'PM25'
 #spec = 'O3'
 spec = 'AQIcolors_24hrPM25'
 #spec = 'AQIcolors_08hrO3'
 
-overlay_gif = airpact.create_gif(spec, qd)
-airpact.optimize_gif(overlay_gif)
+#overlay_gif = airpact.create_gif(spec, qd)
+#airpact.optimize_gif(overlay_gif)
 
-#for spec in airpact.overlays:
-#    overlay_gif = airpact.create_gif(spec, qd)
-#    airpact.optimize_gif(overlay_gif)
+for spec in airpact.overlays:
+    #overlay_gif = airpact.create_gif(spec, qd, reload_cache=True)
+    #airpact.optimize_gif(overlay_gif)
+    airpact.get_overlay_image_list(spec)
 
