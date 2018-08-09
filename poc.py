@@ -278,13 +278,15 @@ class Airpact():
         return sorted(cached_images)
 
         
-    def get_latest_imagery_date(self, overlay):
-        """Search for most recent imagery date
+    def get_latest_imagery_date(self, overlay, incomplete_ok=False):
+        """Search for most recent date with complete imagery set (48 images)
         
         Params
         ------
         overlay : str
             Valid options are listed in `airpact.overlays`
+        incomplete_ok : boolean, optional
+            If `True`, ignores requirement for complete set of 48 images
         
         Returns
         -------
@@ -302,7 +304,9 @@ class Airpact():
             r = requests.get(uri.format(date=search_date))
             if r.status_code != 404:
                 last_pub_date = search_date
-                break
+                n = len(self.get_overlay_image_list(overlay, date=search_date))
+                if incomplete_ok or n == 48: # XXXX
+                    break
             search_date += timedelta(days=-1)        
         return last_pub_date
         
@@ -327,7 +331,8 @@ class Airpact():
         return rc
         
         
-    def create_gif(self, overlay, date=None, reload_cache=False):
+    def create_gif(self, overlay, date=None, reload_cache=False, 
+                   incomplete_ok=False):
         """Create animated gif of overlay for specified date
         
         Params
@@ -338,6 +343,9 @@ class Airpact():
             If `date` is `None`, assumes current date from local computer clock
         reload_cache : boolean, optional
             If `True`, ignores files in local cache
+        incomplete_ok : boolean, optional
+            Only applies if using `date`=`None`. If `True`, ignores requirement
+            for complete set of 48 images (#FIXME)
         
         Returns
         -------
@@ -347,7 +355,8 @@ class Airpact():
         assert overlay in self.overlays, "Specified unavailable overlay; see `airpact.overlays`"
         
         if date is None:
-            date = self.get_latest_imagery_date(overlay)
+            date = self.get_latest_imagery_date(overlay, 
+                                                incomplete_ok=incomplete_ok)
         else:
             assert isinstance(date, datetime)
                 
