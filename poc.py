@@ -12,7 +12,7 @@ import imageio
 from PIL import Image, ImageFont, ImageDraw
 
 ####
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 import requests, urllib
 
@@ -23,8 +23,8 @@ class Airpact():
         Params
         ------
         date : datetime.datetime, optional
-            If `date` is `None`, initalizes AIRPACT metadata assuming current
-            date from local computer clock
+            If `date` is `None`, initalizes AIRPACT metadata with most recent
+            model run
         """
         self._server_uri = "http://lar.wsu.edu/airpact/gmap/ap5/images/anim/"
 
@@ -128,10 +128,10 @@ class Airpact():
         overlay : str
             Valid options are listed in `airpact.overlays`
         date : datetime.datetime, optional
-            If `date` is `None`, assumes current date from local computer clock
+            If `date` is `None`, searches for most recent model run
         """
         if date is None:
-            date = datetime.now()
+            date = self.get_latest_imagery_date(overlay)
         else:
             assert isinstance(date, datetime), "`date` must be `datetime.datetime` or None"
         httpresp = requests.get(self._server_uri + 
@@ -139,18 +139,24 @@ class Airpact():
         self._indexhtm = httpresp.text
 
 
-    def get_overlay_list(self, date=None):
+    def get_overlay_list(self, date):
         """Return list of overlays with imagery products for given date
         
         Params
         ------
-        date : datetime.datetime, optional
-            If `date` is `None`, assumes current date from local computer clock            
+        date : datetime.datetime, ~~optional~~
+            Date to search for overlays
+            ~~If `date` is `None`, searches for most recent model run~~
+
+        Returns
+        -------
+        List of str representing available overlay groups on specified date
         """
-        if date is None:
-            date = datetime.now()
-        else:
-            assert isinstance(date, datetime), "`date` must be `datetime.datetime` or None"
+        #if date is None:
+        #    date = datetime.now()
+        #else:
+        #    assert isinstance(date, datetime), "`date` must be `datetime.datetime` or None"
+        assert isinstance(date, datetime), "`date` must be `datetime.datetime`"
         print("Retrieving image overlay list for {date:%Y-%m-%d}..".
               format(date=date))
 
@@ -182,10 +188,14 @@ class Airpact():
         overlay : str
             Valid options are listed in `airpact.overlays`
         date : datetime.datetime, optional
-            If `date` is `None`, assumes current date from local computer clock            
+            If `date` is `None`, searches for most recent model run
+            
+        Returns
+        -------
+        List of str representing imagery URIs for specified overlay and date
         """
         if date is None:
-            date = datetime.now()
+            date = self.get_latest_imagery_date(overlay)
         else:
             assert isinstance(date, datetime), "`date` must be `datetime.datetime` or None"
         print("Retrieving image list for {name} on {date:%Y-%m-%d}..".
@@ -225,16 +235,16 @@ class Airpact():
         overlay : str
             Valid options are listed in `airpact.overlays`
         date : datetime.datetime, optional
-            If `date` is `None`, assumes current date from local computer clock
+            If `date` is `None`, searches for most recent model run
         reload_cache : boolean, optional
-            If `True`, ignores previously downloaded (cached) files
+            If `True`, ignores files in local cache
             
         Returns
         -------
-        List of strings representing full file paths to downloaded images.
+        List of str representing full file paths to downloaded images.
         """
         if date is None:
-            date = datetime.now()
+            date = self.get_latest_imagery_date(overlay)
         else:
             assert isinstance(date, datetime), "`date` must be `datetime.datetime` or None"
         print("Retrieving {name} overlay imagery for {date:%Y-%m-%d}..".
@@ -245,7 +255,7 @@ class Airpact():
                              self._cache_dir_srcs,
                              meta['overlay_path'].format(date=date),
                              overlay) # HINT for sanity's sake
-        
+        os.makedirs(cache_dir, exist_ok=True)
         cached_images = glob(osp.join(cache_dir, '*_'+overlay+'_*'))
         if reload_cache or not cached_images:
             msg = 'Ignoring cache files.' if reload_cache else 'Cache not found.'
@@ -267,6 +277,35 @@ class Airpact():
                 print(img)
         return sorted(cached_images)
 
+        
+    def get_latest_imagery_date(self, overlay):
+        """Search for most recent imagery date
+        
+        Params
+        ------
+        overlay : str
+            Valid options are listed in `airpact.overlays`
+        
+        Returns
+        -------
+        `datetime.datetime` instance for most current imagery date
+        """
+        meta = self._sources[overlay]
+        uri = self._server_uri + meta['overlay_path']
+        
+        # find a good date to start from, assuming tomorrow
+        date = datetime.now()
+        assert date > datetime(2015, 8, 1) # start of imagery (ignoring 2012)
+        search_date = date  + timedelta(days=1)
+        last_pub_date = None
+        while True:
+            r = requests.get(uri.format(date=search_date))
+            if r.status_code != 404:
+                last_pub_date = search_date
+                break
+            search_date += timedelta(days=-1)        
+        return last_pub_date
+        
         
     def optimize_gif(self, fpath):
         """Run `gifsicle` to reduce gif file size
@@ -302,7 +341,7 @@ class Airpact():
         assert overlay in self.overlays, "Specified unavailable overlay; see `airpact.overlays`"
         
         if date is None:
-            date = datetime.now()
+            date = self.get_latest_imagery_date(overlay)
         else:
             assert isinstance(date, datetime)
                 
