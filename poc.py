@@ -38,8 +38,8 @@ class Airpact():
         self._indexhtm = ""
         self._cache_dir_base = 'tmp'
         self._cache_dir_srcs = 'img_sources'
-        self._cache_dir_gifs = 'gif_frames'
-        self._cache = {}
+        self._cache_dir_frames = 'gif_frames'
+        self._cache_dir_gifs = 'gif_products'
         
         self._sources = {
             # HINT key is overlay name, gets used in certain string subs
@@ -327,7 +327,7 @@ class Airpact():
         return rc
         
         
-    def create_gif(self, overlay, date=None, reload_cache=True):
+    def create_gif(self, overlay, date=None, reload_cache=False):
         """Create animated gif of overlay for specified date
         
         Params
@@ -336,6 +336,8 @@ class Airpact():
             Valid options are listed in `airpact.overlays`
         date : datetime.datetime, optional
             If `date` is `None`, assumes current date from local computer clock
+        reload_cache : boolean, optional
+            If `True`, ignores files in local cache
         
         Returns
         -------
@@ -358,10 +360,14 @@ class Airpact():
             return ''
                
         frame_dir = osp.join(self._cache_dir_base,
-                             self._cache_dir_gifs,
+                             self._cache_dir_frames,
                              meta['overlay_path'].format(date=date),
                              overlay) # HINT for sanity's sake
+        output_dir = osp.join(self._cache_dir_base,
+                              self._cache_dir_gifs,
+                              meta['overlay_path'].format(date=date))
         os.makedirs(frame_dir, exist_ok=True)
+        os.makedirs(output_dir, exist_ok=True)
         
         gif_frames = []
         for f in img_sources:
@@ -457,7 +463,7 @@ class Airpact():
             img.save(o, optimize=True)
             gif_frames.append(imageio.imread(o))
         
-        oname = "out_"+overlay+"_{date:%Y%m%d}.gif".format(date=date)
+        oname = osp.join(output_dir, overlay+".gif")
         imageio.mimwrite(oname, gif_frames, duration=0.75)
         return oname
         
