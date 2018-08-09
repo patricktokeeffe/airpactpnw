@@ -398,7 +398,7 @@ class Airpact():
             # HACK fixup AQIcolors images to have transparency
             # outside overlay boundaries by alpha'ing white
             if 'AQIcolors' in overlay:
-                print("Warning: fixing alpha channel in "+osp.basename(f))
+                #print("Warning: fixing alpha channel in "+osp.basename(f))
                 pixdata = fg.load()
                 for y in range(fg.size[1]):
                     for x in range(fg.size[0]):
@@ -479,18 +479,10 @@ class Airpact():
 airpact = Airpact()
 
 
-qd = None
-#qd = datetime(2018, 8, 5)
-#spec = 'PM25'
-#spec = 'O3'
-spec = 'AQIcolors_24hrPM25'
-#spec = 'AQIcolors_08hrO3'
+if __name__ == '__main__':
 
-#overlay_gif = airpact.create_gif(spec, qd)
-#airpact.optimize_gif(overlay_gif)
-
-for spec in airpact.overlays:
-    #overlay_gif = airpact.create_gif(spec, qd, reload_cache=True)
-    #airpact.optimize_gif(overlay_gif)
-    airpact.get_overlay_image_list(spec)
+    for spec in ['PM25', 'AQIcolors_24hrPM25']:
+        airpact.get_overlay_image_list(spec)
+        overlay_gif = airpact.create_gif(spec)
+        airpact.optimize_gif(overlay_gif)
 
