@@ -256,7 +256,7 @@ class Airpact():
                              meta['overlay_path'].format(date=date),
                              overlay) # HINT for sanity's sake
         os.makedirs(cache_dir, exist_ok=True)
-        cached_images = glob(osp.join(cache_dir, '*_'+overlay+'_*'))
+        cached_images = sorted(glob(osp.join(cache_dir, '*_'+overlay+'_*')))
         if reload_cache or not cached_images:
             msg = 'Ignoring cache files.' if reload_cache else 'Cache not found.'
             print('{0} Downloading files..'.format(msg))
@@ -275,7 +275,7 @@ class Airpact():
             print('Using cached file set:')
             for img in cached_images:
                 print(img)
-        return sorted(cached_images)
+        return cached_images
 
         
     def get_latest_imagery_date(self, overlay, incomplete_ok=False):
