@@ -483,6 +483,6 @@ if __name__ == '__main__':
 
     for spec in ['PM25', 'AQIcolors_24hrPM25']:
         airpact.get_overlay_image_list(spec)
-        overlay_gif = airpact.create_gif(spec)
+        overlay_gif = airpact.create_gif(spec)#, incomplete_ok=True)
         airpact.optimize_gif(overlay_gif)
 
