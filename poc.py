@@ -1,4 +1,4 @@
-#!/home/patrick/anaconda3/bin/python
+#!/usr/bin/env python3
 #
 # proof of concept
 # Patrick O'Keeffe
@@ -6,7 +6,7 @@
 import os, os.path as osp
 from glob import glob
 
-os.chdir('/home/patrick/Code/twitter-airpactpnw.git')
+os.chdir(osp.dirname(osp.abspath(__file__)))
 
 import imageio
 from PIL import Image, ImageFont, ImageDraw
