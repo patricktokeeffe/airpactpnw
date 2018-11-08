@@ -403,7 +403,7 @@ class Airpact():
                                 (255,255,0) : (121,209,81),
                                 (255,165,0) : (34,167,132),
                                 (255, 0, 0) : (41,120,142),
-                                (139,28,93) : (64, 67,135),
+                                (139,28,98) : (64, 67,135),
                                 (139,26,26) : (68,  1, 84)}
             pm25_aqi_colorblind = {(0,  255,0) : ( 0,114,178),
                                    (255,255,0) : (230,159, 0),
@@ -411,7 +411,7 @@ class Airpact():
                                    (255, 0, 0) : ( 0,158,115),
                                    (139,28,98) : (86,180,233),
                                    (139,26,26) : (213, 94, 0)}
-            for old, new in pm25_aqi_cividis.items():
+            for old, new in pm25_aqi_viridis.items():
                 #print("Translating "+str(old+(255,))+" to "+str(new+(255,)))
                 for y in range(fg.size[1]):
                     for x in range(fg.size[0]):
@@ -445,7 +445,7 @@ class Airpact():
             draw.rectangle((anim_pos, anim_border), outline="black")
             
             # put legend on right-hand side centered wrt map and right edge
-            legend = Image.open(self._gif_legend.format(name=overlay+"_cividis"))
+            legend = Image.open(self._gif_legend.format(name=overlay+"_viridis"))
             assert anim.size[1] > legend.size[1], "Sorry! the animation must be taller than the legend!"
             legend_lbuff = round((canvas_dims[0]-anim_border[0])/2 - legend.size[0]/2) 
             legend_tbuff = round((anim_border[1]-anim_pos[1])/2 - legend.size[1]/2)
@@ -487,7 +487,7 @@ class Airpact():
             
             # add taglines, anchored to logo
             hashtag_pos = (logo_pos[0]+logo.size[0]+5, logo_pos[1]+10)
-            hashtag_text = "#AIRPACT"
+            hashtag_text = "#VIRIDIS"
             hashtag_size = draw.textsize(hashtag_text, font=titlefont)
             draw.text(hashtag_pos, hashtag_text, fill=font_color, font=titlefont)
             url_font = ImageFont.truetype(self._gif_font, 14)
@@ -512,6 +512,6 @@ if __name__ == '__main__':
 
     for spec in ['AQIcolors_24hrPM25']:
         airpact.get_overlay_image_list(spec)
-        overlay_gif = airpact.create_gif(spec)#, incomplete_ok=True)
+        overlay_gif = airpact.create_gif(spec, date=datetime(2018, 8, 21))#, incomplete_ok=True)
         airpact.optimize_gif(overlay_gif)
 
