@@ -390,6 +390,36 @@ class Airpact():
             fg = Image.open(f).convert('RGBA')
             fg = fg.resize(self._gif_map_dims, self._gif_resize_f)
 
+            ###
+            pixdata = fg.load()
+            # experiment with new color maps
+            pm25_aqi_cividis = {(0,  255,0) : (255,233,69 ),
+                                (255,255,0) : (202,185,105),
+                                (255,165,0) : (149,143,120),
+                                (255, 0, 0) : (102,104,112),
+                                (139,28,98) : (49, 68, 107),
+                                (139,26,26) : (90, 32, 76 )}
+            pm25_aqi_viridis = {(0,  255,0) : (253,231,36),
+                                (255,255,0) : (121,209,81),
+                                (255,165,0) : (34,167,132),
+                                (255, 0, 0) : (41,120,142),
+                                (139,28,93) : (64, 67,135),
+                                (139,26,26) : (68,  1, 84)}
+            pm25_aqi_colorblind = {(0,  255,0) : ( 0,114,178),
+                                   (255,255,0) : (230,159, 0),
+                                   (255,165,0) : (240,228,66),
+                                   (255, 0, 0) : ( 0,158,115),
+                                   (139,28,98) : (86,180,233),
+                                   (139,26,26) : (213, 94, 0)}
+            for old, new in pm25_aqi_cividis.items():
+                #print("Translating "+str(old+(255,))+" to "+str(new+(255,)))
+                for y in range(fg.size[1]):
+                    for x in range(fg.size[0]):
+                        if pixdata[x, y] == old+(255,):
+                            #print("Located pixel. Updating...")
+                            pixdata[x, y] = new+(255,)            
+            ###
+
             # load B&W version for alpha-masking non-transparent areas
             mask = Image.open(f).convert('L')
             mask = mask.resize(self._gif_map_dims, self._gif_resize_f)
@@ -399,12 +429,11 @@ class Airpact():
             # outside overlay boundaries by alpha'ing white
             if 'AQIcolors' in overlay:
                 #print("Warning: fixing alpha channel in "+osp.basename(f))
-                pixdata = fg.load()
                 for y in range(fg.size[1]):
                     for x in range(fg.size[0]):
                         if pixdata[x, y] == (255, 255, 255, 255):
                             pixdata[x, y] = (255, 255, 255, 0)                
-            
+
             # overlay alpha-ed source on map background
             anim = background.copy()
             anim.paste(fg, (0,0), fg)
@@ -416,7 +445,7 @@ class Airpact():
             draw.rectangle((anim_pos, anim_border), outline="black")
             
             # put legend on right-hand side centered wrt map and right edge
-            legend = Image.open(self._gif_legend.format(name=overlay))
+            legend = Image.open(self._gif_legend.format(name=overlay+"_cividis"))
             assert anim.size[1] > legend.size[1], "Sorry! the animation must be taller than the legend!"
             legend_lbuff = round((canvas_dims[0]-anim_border[0])/2 - legend.size[0]/2) 
             legend_tbuff = round((anim_border[1]-anim_pos[1])/2 - legend.size[1]/2)
@@ -481,7 +510,7 @@ airpact = Airpact()
 
 if __name__ == '__main__':
 
-    for spec in ['PM25', 'AQIcolors_24hrPM25']:
+    for spec in ['AQIcolors_24hrPM25']:
         airpact.get_overlay_image_list(spec)
         overlay_gif = airpact.create_gif(spec)#, incomplete_ok=True)
         airpact.optimize_gif(overlay_gif)
