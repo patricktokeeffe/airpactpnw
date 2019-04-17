@@ -15,67 +15,37 @@ from the Python [Bokeh library](https://bokeh.pydata.org/en/latest/docs/referenc
 | 201 - 300 | Purple    | 143, 63, 151 | 49,68,107   | 64,67,135  | 86, 180, 233| 139,28,98 | 151,11,76 |
 | 301 - 500 | Maroon    | 126, 0, 35   | 0,32,76     | 68,1,84    | 213, 94, 0  | 139,26,26 | 124,6,33  |
 
-AIRPACT PM2.5 AQI colors extracted from source imagery.
 
-<table width="50%" border="2"><tbody>
-<tr>
-<td>AQI scale</td>
-<td>AIRPACT PM2.5 AQI (imagery)</td>
-<td>AIRPACT PM2.5 AQI (legend)</td>
-<td><a href="https://bokeh.pydata.org/en/latest/docs/reference/palettes.html#bokeh.palettes.cividis">cividis</a></td>
-<td><a href="https://bokeh.pydata.org/en/latest/docs/reference/palettes.html#bokeh.palettes.viridis">viridis</a></td>
-<td><a href="https://bokeh.pydata.org/en/latest/docs/reference/palettes.html#usability-palettes">color blind</a></td>
-</tr>
-<tr>
-<td style="background-color:rgb(0,228,0)">Green</td>
-<td style="background-color:rgb(0,255,0)">&nbsp;</td>
-<td style="background-color:rgb(36,225,0)">&nbsp;</td>
-<td style="background-color:rgb(255,233,69)">&nbsp;</td>
-<td style="background-color:rgb(253,231,36)">&nbsp;</td>
-<td style="background-color:rgb(0,114,178)">&nbsp;</td>
-</tr>
-<tr>
-<td style="background-color:rgb(255,255,0)">Yellow</td>
-<td style="background-color:rgb(255,255,0)">&nbsp;</td>
-<td style="background-color:rgb(252,252,20)">&nbsp;</td>
-<td style="background-color:rgb(202,185,105)">&nbsp;</td>
-<td style="background-color:rgb(121,209,81)">&nbsp;</td>
-<td style="background-color:rgb(230,159,0)">&nbsp;</td>
-</tr>
-<tr>
-<td style="background-color:rgb(255,126,0)">Orange</td>
-<td style="background-color:rgb(255,165,0)">&nbsp;</td>
-<td style="background-color:rgb(252,126,0)">&nbsp;</td>
-<td style="background-color:rgb(149,143,120)">&nbsp;</td>
-<td style="background-color:rgb(34,167,132)">&nbsp;</td>
-<td style="background-color:rgb(240,228,66)">&nbsp;</td>
-</tr>
-<tr>
-<td style="background-color:rgb(255,0,0)">Red</td>
-<td style="background-color:rgb(255,0,0)">&nbsp;</td>
-<td style="background-color:rgb(252,22,0)">&nbsp;</td>
-<td style="background-color:rgb(102,104,112)">&nbsp;</td>
-<td style="background-color:rgb(41,120,142)">&nbsp;</td>
-<td style="background-color:rgb(0,158,115)">&nbsp;</td>
-</tr>
-<tr>
-<td style="background-color:rgb(143,63,151)">Purple</td>
-<td style="background-color:rgb(139,28,98)">&nbsp;</td>
-<td style="background-color:rgb(151,11,76)">&nbsp;</td>
-<td style="background-color:rgb(49,68,107)">&nbsp;</td>
-<td style="background-color:rgb(64,67,135)">&nbsp;</td>
-<td style="background-color:rgb(86,180,233)">&nbsp;</td>
-</tr>
-<tr>
-<td style="background-color:rgb(126,0,35)">Maroon</td>
-<td style="background-color:rgb(139,26,26)">&nbsp;</td>
-<td style="background-color:rgb(124,6,33)">&nbsp;</td>
-<td style="background-color:rgb(0,32,76)">&nbsp;</td>
-<td style="background-color:rgb(68,1,84)">&nbsp;</td>
-<td style="background-color:rgb(213,94,0)">&nbsp;</td>
-</tr>
-</tbody></table>
+### Color comparision
 
+AIRPACT PM2.5 AQI colors, extracted from both imagery and legend, compared to prescribed color values and comparable alternatives from the [Bokeh](https://bokeh.pydata.org) library.
+
+| AQI | imagery | legend | [cividis](https://bokeh.pydata.org/en/latest/docs/reference/palettes.html#bokeh.palettes.cividis) | [viridis](https://bokeh.pydata.org/en/latest/docs/reference/palettes.html#bokeh.palettes.viridis) | [color blind](https://bokeh.pydata.org/en/latest/docs/reference/palettes.html#usability-palettes) |
+|:-------------------------------------------------:|:-------------------------------------------------:|:-------------------------------------------------:|:-------------------------------------------------:|:-------------------------------------------------:|:-------------------------------------------------:|
+| ![#00E400](https://placehold.it/25/00E400?text=+) | ![#00FF00](https://placehold.it/25/00FF00?text=+) | ![#24E100](https://placehold.it/25/24E100?text=+) | ![#FFE945](https://placehold.it/25/FFE945?text=+) | ![#FDE724](https://placehold.it/25/FDE724?text=+) | ![#0072B2](https://placehold.it/25/0072B2?text=+) |
+| ![#FFFF00](https://placehold.it/25/FFFF00?text=+) | ![#FFFF00](https://placehold.it/25/FFFF00?text=+) | ![#FCFC14](https://placehold.it/25/FCFC14?text=+) | ![#CAB969](https://placehold.it/25/CAB969?text=+) | ![#FDE724](https://placehold.it/25/FDE724?text=+) | ![#E69F00](https://placehold.it/25/E69F00?text=+) |
+| ![#FF7E00](https://placehold.it/25/FF7E00?text=+) | ![#FFA500](https://placehold.it/25/FFA500?text=+) | ![#FC7E00](https://placehold.it/25/FC7E00?text=+) | ![#958F78](https://placehold.it/25/958F78?text=+) | ![#22A784](https://placehold.it/25/22A784?text=+) | ![#F0E442](https://placehold.it/25/F0E442?text=+) |
+| ![#FF0000](https://placehold.it/25/FF0000?text=+) | ![#FF0000](https://placehold.it/25/FF0000?text=+) | ![#FC1600](https://placehold.it/25/FC1600?text=+) | ![#958F78](https://placehold.it/25/958F78?text=+) | ![#29788E](https://placehold.it/25/29788E?text=+) | ![#009E73](https://placehold.it/25/009E73?text=+) |
+| ![#8F3F97](https://placehold.it/25/8F3F97?text=+) | ![#8B1C62](https://placehold.it/25/8B1C62?text=+) | ![#970B4C](https://placehold.it/25/970B4C?text=+) | ![#31446B](https://placehold.it/25/31446B?text=+) | ![#404387](https://placehold.it/25/404387?text=+) | ![#56B4E9](https://placehold.it/25/56B4E9?text=+) |
+| ![#7E0023](https://placehold.it/25/7E0023?text=+) | ![#8B1A1A](https://placehold.it/25/8B1A1A?text=+) | ![#7C0621](https://placehold.it/25/7C0621?text=+) | ![#00204C](https://placehold.it/25/00204C?text=+) | ![#440154](https://placehold.it/25/440154?text=+) | ![#D55E00](https://placehold.it/25/D55E00?text=+) |
+
+AIRPACT PM2.5 mass unit scaling
+
+| ug/m3 | legend  | cividis | viridis | legend                                            | cividis                                           | viridis                                           |
+|-------|---------|---------|---------|:-------------------------------------------------:|:-------------------------------------------------:|:-------------------------------------------------:|
+|  160  | #FE0000 | #FFE945 | #FDE724 | ![#FE0000](https://placehold.it/25/FE0000?text=+) | ![#FFE945](https://placehold.it/25/FFE945?text=+) | ![#FDE724](https://placehold.it/25/FDE724?text=+) |
+|   80  | #FE5200 | #E8D257 | #BFDF24 | ![#FE5200](https://placehold.it/25/FE5200?text=+) | ![#E8D257](https://placehold.it/25/E8D257?text=+) | ![#BFDF24](https://placehold.it/25/BFDF24?text=+) |
+|   40  | #FFA300 | #CEBD67 | #83D34B | ![#FFA300](https://placehold.it/25/FFA300?text=+) | ![#CEBD67](https://placehold.it/25/CEBD67?text=+) | ![#83D34B](https://placehold.it/25/83D34B?text=+) |
+|   30  | #FFFF01 | #B6A971 | #4FC369 | ![#FFFF01](https://placehold.it/25/FFFF01?text=+) | ![#B6A971](https://placehold.it/25/B6A971?text=+) | ![#4FC369](https://placehold.it/25/4FC369?text=+) |
+|   20  | #ADE604 | #9E9676 | #2AB07E | ![#ADE604](https://placehold.it/25/ADE604?text=+) | ![#9E9676](https://placehold.it/25/9E9676?text=+) | ![#2AB07E](https://placehold.it/25/2AB07E?text=+) |
+|   15  | #5BCC0C | #878478 | #1E9A89 | ![#5BCC0C](https://placehold.it/25/5BCC0C?text=+) | ![#878478](https://placehold.it/25/878478?text=+) | ![#1E9A89](https://placehold.it/25/1E9A89?text=+) |
+|   10  | #08B30D | #717273 | #24848D | ![#08B30D](https://placehold.it/25/08B30D?text=+) | ![#717273](https://placehold.it/25/717273?text=+) | ![#24848D](https://placehold.it/25/24848D?text=+) |
+|    8  | #057366 | #5D616E | #2D6E8E | ![#057366](https://placehold.it/25/057366?text=+) | ![#5D616E](https://placehold.it/25/5D616E?text=+) | ![#2D6E8E](https://placehold.it/25/2D6E8E?text=+) |
+|    6  | #0339B3 | #46506B | #38578C | ![#0339B3](https://placehold.it/25/0339B3?text=+) | ![#46506B](https://placehold.it/25/46506B?text=+) | ![#38578C](https://placehold.it/25/38578C?text=+) |
+|    4  | #0000FE | #29406B | #423D84 | ![#0000FE](https://placehold.it/25/0000FE?text=+) | ![#29406B](https://placehold.it/25/29406B?text=+) | ![#423D84](https://placehold.it/25/423D84?text=+) |
+|    2  | #5351FD | #002F6F | #482172 | ![#5351FD](https://placehold.it/25/5351FD?text=+) | ![#002F6F](https://placehold.it/25/002F6F?text=+) | ![#482172](https://placehold.it/25/482172?text=+) |
+|    1  | #ACADFF | #00204C | #440154 | ![#ACADFF](https://placehold.it/25/ACADFF?text=+) | ![#00204C](https://placehold.it/25/00204C?text=+) | ![#440154](https://placehold.it/25/440154?text=+) |
+|    -  | #FFFFFF | #FFFFFF | #FFFFFF | ![#FFFFFF](https://placehold.it/25/FFFFFF?text=+) | ![#FFFFFF](https://placehold.it/25/FFFFFF?text=+) | ![#FFFFFF](https://placehold.it/25/FFFFFF?text=+) |
 
 Best alternate map?
 
