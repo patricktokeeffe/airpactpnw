@@ -4,6 +4,7 @@
 # Patrick O'Keeffe
 
 import os, os.path as osp
+import subprocess
 from glob import glob
 
 os.chdir(osp.dirname(osp.abspath(__file__)))
@@ -481,8 +482,14 @@ airpact = Airpact()
 
 if __name__ == '__main__':
 
+    outputs = []
     for spec in ['PM25', 'AQIcolors_24hrPM25']:
         airpact.get_overlay_image_list(spec)
         overlay_gif = airpact.create_gif(spec)#, incomplete_ok=True)
         airpact.optimize_gif(overlay_gif)
+        outputs.append(overlay_gif)
+
+    outdir = osp.commonpath(outputs)
+    subprocess.call(["./tweet.py", outdir])
+
 
