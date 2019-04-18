@@ -6,7 +6,7 @@ representing 6 categories from good (0-50) to hazardous (301-500). In the
 table below, they are listed with equivalent colors from some alternate maps
 from the Python [Bokeh library](https://bokeh.pydata.org/en/latest/docs/reference/palettes.html)).
 
-| AQI value | AQI Color | RGB code     | cividis     | viridis    | color blind | AIRPACT PM2.5 AQI (imagery) | AIRPACT PM2.5 AQI (legend) |
+| AQI value | AQI Color | RGB code[^1] | cividis     | viridis    | color blind | AIRPACT PM2.5 AQI (imagery) | AIRPACT PM2.5 AQI (legend) |
 |-----------|-----------|--------------|-------------|------------|-------------|-----------|-----------|
 | 0 - 50    | Green     |  0, 228, 0   | 255,233,69  | 253,231,36 | 0, 114, 178 | 0, 255, 0 | 36,225,0  |
 | 51 - 100  | Yellow    | 255, 255, 0  | 202,185,105 | 121,209,81 | 230, 159, 0 | 255,255,0 | 252,252,20|
@@ -14,6 +14,9 @@ from the Python [Bokeh library](https://bokeh.pydata.org/en/latest/docs/referenc
 | 151 - 200 | Red       | 255, 0, 0    | 102,104,112 | 41,120,142 | 0, 158, 115 | 255, 0, 0 | 252,22,0  |
 | 201 - 300 | Purple    | 143, 63, 151 | 49,68,107   | 64,67,135  | 86, 180, 233| 139,28,98 | 151,11,76 |
 | 301 - 500 | Maroon    | 126, 0, 35   | 0,32,76     | 68,1,84    | 213, 94, 0  | 139,26,26 | 124,6,33  |
+
+[^1]: Table 2. AQI color formulas (EPA, Technical Assistance Document for the
+      Reporting of Daily Air Quality - the Air Quality Index (AQI), May 2016).
 
 
 ### Color comparision
