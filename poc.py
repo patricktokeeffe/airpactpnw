@@ -497,10 +497,8 @@ def optimize_gif(fpath):
     Process return code value
     """
     from subprocess import run
-    oname = fpath[:-4]+'_lossy'+fpath[-4:] # suffix
-    #oname = 'lossy_'+fpath # prefix
     rc = run(['./gifsicle-static', '-O3', '--lossy={0}'.format(30),
-              '--colors=256', '--output={0}'.format(oname), fpath])
+              '--colors=256', '--output={0}'.format(fpath), fpath])
     return rc
 
     
