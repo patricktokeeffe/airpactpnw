@@ -17,7 +17,8 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 
-
+import random
+num = random.randint(0,1000)
 
 
 if __name__=="__main__":
@@ -27,7 +28,7 @@ if __name__=="__main__":
     if not (osp.isfile(pm25_mass_gif) or osp.isfile(pm25_aqi_gif)):
         raise Exception("Could not locate source GIFs in {}".format(source_dir))    
 
-    post = api.update_status("Good morning! Ready for more AIRPACT?")
+    post = api.update_status("Good morning! Ready for more AIRPACT? ({})".format(num))
 
     if osp.isfile(pm25_mass_gif):
         print("Uploading PM2.5 mass file: {}".format(pm25_mass_gif))
