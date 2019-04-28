@@ -4,6 +4,7 @@
 # Patrick O'Keeffe
 
 import os, os.path as osp
+import subprocess
 from glob import glob
 
 os.chdir(osp.dirname(osp.abspath(__file__)))
@@ -506,8 +507,12 @@ def optimize_gif(fpath):
 
 if __name__ == '__main__':
 
+    outputs = []
     for ea in overlays:#['PM25', 'AQIcolors_24hrPM25']:
         overlay_gif = create_gif(ea)
         optimize_gif(overlay_gif)
-        
+        outputs.append(overlay_gif)
+
+    outdir = osp.commonpath(outputs)
+    subprocess.call(["./tweet.py", outdir])
 
