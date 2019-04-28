@@ -48,20 +48,65 @@ _cache_dir_gifs = 'gif_products'
 
 _dir_info = {'path': '{subdir}/{date:%Y}/{date:%Y_%m_%d}/',
              'file': 'airpact5_{name}_{date}.gif',
-             'date_re': '[0-9]{10}'
-             }
+             'date_re': '[0-9]{10}'}
 
 _sources = {
-    'AQIcolors_08hrO3':     {'subdir': 'species',
+    # HINT 
+    # - key values are substituted for {name} in `_dir_info['file']`
+    # - the unit/desc fields not yet used, but intended for generating tweets
+    #
+    '08hrO3':               {'subdir': 'species',
                              'label' : 'Ozone',
                              'abbv'  : 'O3-8hr',
                              'unit'  : 'ppb',
+                             'desc'  : '8hr avg ozone conc'},
+    '24hrPM25':             {'subdir': 'species',
+                             'label' : 'Fine particulates',
+                             'abbv'  : 'PM2.5-24hr',
+                             'unit'  : 'ug/m3',
+                             'desc'  : '24hr avg PM2.5 conc'},
+    'ANO3':                 {'subdir': 'species',
+                             'label' : 'Nitrate aerosol',
+                             'abbv'  : 'ANO3',
+                             'unit'  : 'ppb',
+                             'desc'  : 'hourly nitrate aerosol conc'},
+    #'AOD': ignoring - images are labeled from hours 01-24 and so need special parsing code
+    #'AOMIJ': ignoring-  can't identify corresponding legend
+    'AQIcolors_08hrO3':     {'subdir': 'species',
+                             'label' : 'Ozone',
+                             'abbv'  : 'O3-8hr',
+                             'unit'  : '',
                              'desc'  : '8hr avg #ozone conc (AQI colors)'},
     'AQIcolors_24hrPM25':   {'subdir': 'species',
                              'label' : 'Fine particulates',
                              'abbv'  : 'PM2.5-24hr',
-                             'unit'  : 'ug/m3',
+                             'unit'  : '',
                              'desc'  : '24hr avg #PM25 conc (AQI colors)'},
+    'CO':                   {'subdir': 'species',
+                             'label' : 'Carbon monoxide',
+                             'abbv'  : 'CO',
+                             'unit'  : 'ppm',
+                             'desc'  : 'hourly carbon monoxide (CO) conc'},
+    'HCHO':                 {'subdir': 'species',
+                             'label' : 'Formaldehyde',
+                             'abbv'  : 'HCHO',
+                             'unit'  : 'ppb',
+                             'desc'  : 'hourly formaldehyde (HCHO) conc'},
+    'ISOPRENE':             {'subdir': 'species',
+                             'label' : 'Isoprene',
+                             'abbv'  : '',
+                             'unit'  : 'ppb',
+                             'desc'  : 'hourly isoprene conc'},
+    'NH3':                  {'subdir': 'species',
+                             'label' : 'Ammonia',
+                             'abbv'  : 'NH3',
+                             'unit'  : 'ppb',
+                             'desc'  : 'hourly ammonia conc'},
+    'NOx':                  {'subdir': 'species',
+                             'label' : 'Nitrogen oxides',
+                             'abbv'  : 'NOx',
+                             'unit'  : 'ppb',
+                             'desc'  : 'hourly nitrogen oxides conc'},
     'O3':                   {'subdir': 'species',
                              'label' : 'Ozone',
                              'abbv'  : 'O3',
@@ -72,6 +117,22 @@ _sources = {
                              'abbv'  : 'PM2.5',
                              'unit'  : 'ug/m3',
                              'desc'  : 'hourly fine particulates (#PM25) conc'},
+    'SO2':                  {'subdir': 'species',
+                             'label' : 'Sulfur dioxide',
+                             'abbv'  : 'SO2',
+                             'unit'  : 'ppb',
+                             'desc'  : 'hourly sulfur dioxide (SO2) conc'},
+    #'VIS': ignoring - images are labeled from hours 01-24 and so need special parsing code
+    'VOCs':                 {'subdir': 'species',
+                             'label' : 'Volatile organics',
+                             'abbv'  : 'VOCs',
+                             'unit'  : 'ppb',
+                             'desc'  : 'hourly VOCs conc'},
+    'WSPM25':               {'subdir': 'species',
+                             'label' : 'Wood smoke fine particulates',
+                             'abbv'  : 'WS-PM2.5',
+                             'unit'  : 'ug/m3',
+                             'desc'  : 'hourly #woodsmoke PM2.5 conc'},
            }
                    
 overlays = sorted(list(_sources.keys()))
@@ -382,9 +443,9 @@ def create_gif(overlay, date=None, use_cache=True):
         # place overlay title along the top
         titlefont = ImageFont.truetype(_gif_font, 22)
         if not len(meta['abbv']):
-            title = meta['label']
+            title = "{l} forecast".format(l=meta['label'])
         else:
-            title = "{l} ({a})".format(l=meta['label'], a=meta['abbv'])
+            title = "{l} ({a}) forecast".format(l=meta['label'], a=meta['abbv'])
         
         title_size = draw.textsize(title, font=titlefont)
         title_pos = ((canvas_dims[0]-title_size[0])/2, 10)
@@ -447,8 +508,8 @@ def optimize_gif(fpath):
 
 if __name__ == '__main__':
 
-    for spec in ['PM25', 'AQIcolors_24hrPM25']:
-        overlay_gif = create_gif(spec)
+    for ea in overlays:#['PM25', 'AQIcolors_24hrPM25']:
+        overlay_gif = create_gif(ea)
         optimize_gif(overlay_gif)
         
 
