@@ -7,6 +7,8 @@
 import sys, os.path as osp
 import tweepy
 
+from datetime import datetime
+
 from creds import *
 
 source_dir = sys.argv[1]
@@ -28,7 +30,19 @@ if __name__=="__main__":
     if not (osp.isfile(pm25_mass_gif) or osp.isfile(pm25_aqi_gif)):
         raise Exception("Could not locate source GIFs in {}".format(source_dir))    
 
-    post = api.update_status("Good morning! Ready for more AIRPACT? ({})".format(num))
+    now = datetime.now()
+    # h/t: https://stackoverflow.com/a/739266/2946116
+    if 4 <= now.day <= 20 or 24 <= now.day <= 30:
+        suffix = "th"
+    else:
+        suffix = ["st", "nd", "rd"][now.day % 10 - 1]
+    daystr = "{day}{suffix}".format(day=str(now.day),suffix=suffix)
+    datestr = datetime.strftime(now, "%A, %B {day}, %Y".format(day=daystr))
+    
+    hellomsg = "Good morning! It's {date}".format(date=datestr)
+    
+    
+    post = api.update_status(hellomsg)
 
     if osp.isfile(pm25_mass_gif):
         print("Uploading PM2.5 mass file: {}".format(pm25_mass_gif))
