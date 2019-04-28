@@ -25,8 +25,8 @@ num = random.randint(0,1000)
 
 if __name__=="__main__":
 
-    pm25_mass_gif = osp.join(source_dir, "PM25_lossy.gif")
-    pm25_aqi_gif  = osp.join(source_dir, "AQIcolors_24hrPM25_lossy.gif")
+    pm25_mass_gif = osp.join(source_dir, "PM25.gif")
+    pm25_aqi_gif  = osp.join(source_dir, "AQIcolors_24hrPM25.gif")
     if not (osp.isfile(pm25_mass_gif) or osp.isfile(pm25_aqi_gif)):
         raise Exception("Could not locate source GIFs in {}".format(source_dir))    
 
@@ -47,17 +47,30 @@ if __name__=="__main__":
     if osp.isfile(pm25_mass_gif):
         print("Uploading PM2.5 mass file: {}".format(pm25_mass_gif))
         pm25_mass = api.media_upload(pm25_mass_gif)
-        post = api.update_status("",
+        post = api.update_status("PM2.5",
                                  in_reply_to_status_id=post.id,
                                  media_ids=[pm25_mass.media_id])
 
     if osp.isfile(pm25_aqi_gif):
         print("Uploading PM2.5 AQI color file: {}".format(pm25_aqi_gif))
         pm25_aqi = api.media_upload(pm25_aqi_gif)
-        api.update_status("",
-                          in_reply_to_status_id=post.id,
-                          media_ids=[pm25_aqi.media_id])
+        post = api.update_status("PM2.5 (AQI colors)",
+                                 in_reply_to_status_id=post.id,
+                                 media_ids=[pm25_aqi.media_id])
 
+    if osp.isfile(osp.join(source_dir, "HCHO.gif")):
+        print("Uploading HCHO color file: {}".format(osp.join(source_dir, "HCHO.gif")))
+        hcho = api.media_upload(osp.join(source_dir, "HCHO.gif"))
+        post = api.update_status("HCHO",
+                                 in_reply_to_status_id=post.id,
+                                 media_ids=[hcho.media_id])
+        
+    if osp.isfile(osp.join(source_dir, "O3.gif")):
+        print("Uploading O3 color file: {}".format(osp.join(source_dir, "O3.gif")))
+        o3 = api.media_upload(osp.join(source_dir, "O3.gif"))
+        post = api.update_status("O3",
+                                 in_reply_to_status_id=post.id,
+                                 media_ids=[o3.media_id])
 
     
 
