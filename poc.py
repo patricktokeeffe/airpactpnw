@@ -12,23 +12,17 @@ os.chdir(osp.dirname(osp.abspath(__file__)))
 import imageio
 from PIL import Image, ImageFont, ImageDraw
 
-####
 from datetime import datetime, timedelta
 import re
 import requests, urllib
 
+import random
+import tweepy
+from creds import * # store API keys in `./creds.py`
 
-
-""" API outline
-
-get_image_metadata(date)
-
-
-
-"""
-
-
-
+auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
+api = tweepy.API(auth)
 
 
 _server_uri = "http://lar.wsu.edu/airpact/gmap/ap5/images/anim/"
@@ -313,7 +307,7 @@ def get_overlay_images(overlay, date=None, use_cache=True):
     os.makedirs(cache_dir, exist_ok=True)
     cached_images = sorted(glob(osp.join(cache_dir, '*_'+overlay+'_*')))
     if not use_cache or not cached_images:
-        msg = 'Ignoring cache files.' if not use_cache else 'Cache not found.'
+        msg = 'Ignoring cache files..' if not use_cache else 'Cache not found.'
         print('{0} Downloading files..'.format(msg))
         cached_images = []
         for img_uri in get_overlay_image_list(overlay, date):
@@ -327,9 +321,9 @@ def get_overlay_images(overlay, date=None, use_cache=True):
     else:
         # TODO FIXME check cached file set against hosted web version
         # to identify missing files
-        print('Using cached file set:')
-        for img in cached_images:
-            print(img)
+        print('Using cached file set..')
+        #for img in cached_images:
+        #    print(img)
     return cached_images
 
 
@@ -503,16 +497,79 @@ def optimize_gif(fpath):
     return rc
 
     
+def hello_message(now):
+    """Construct text of delimiter/daily "good morning" tweet
+    
+    Params
+    ------
+    now : datetime.datetime
+        An instance of time, presumably now
+    
+    Returns
+    -------
+    str : message content
+    """
+    # h/t: https://stackoverflow.com/a/739266/2946116
+    if 4 <= now.day <= 20 or 24 <= now.day <= 30:
+        suffix = "th"
+    else:
+        suffix = ["st", "nd", "rd"][now.day % 10 - 1]
+    daystr = "{day}{suffix}".format(day=str(now.day),suffix=suffix)
+    datestr = datetime.strftime(now, "%A, %B {day}".format(day=daystr))
+    
+    hellomsg = "Good morning! It's {date}".format(date=datestr)
+    print(hellomsg)
+    return hellomsg
+    
+    
 
 
 if __name__ == '__main__':
 
-    outputs = []
-    for ea in overlays:#['PM25', 'AQIcolors_24hrPM25']:
-        overlay_gif = create_gif(ea)
-        optimize_gif(overlay_gif)
-        outputs.append(overlay_gif)
+    now = datetime.now()
+    
+    options = overlays[:]
+    options.remove('PM25') # always publish this one
+    chosen = random.sample(options, random.randrange(round(len(options)*0.33-1)))
+    chosen.append('PM25') # put last to be most recent & shown in collapsed threads
+    print("Selecting overlays: ", chosen)
 
-    outdir = osp.commonpath(outputs)
-    subprocess.call(["./tweet.py", outdir])
+    outputs = {}
+    for overlay in chosen:
+        gif_path = create_gif(overlay, date=now, use_cache=True)
+        if not len(gif_path):
+            print('Failed to create overlay: ', overlay)
+            continue
+        optimize_gif(gif_path)
+        outputs[overlay] = gif_path
+    assert len(outputs), "No gif products"
+    assert all(len(v) for v in outputs.values()), "Missing a gif product"    
+    print("Outputs: ", outputs)
+    
+    msg = hello_message(now)
+    post = api.update_status(msg)
+    print("Success: post ID = ", post.id)
+    
+    for overlay in chosen:
+        gif_path = outputs[overlay]
+        print("Uploading: ", gif_path)
+        resp = api.media_upload(gif_path)
+        print("Success: media ID = ", resp.media_id)
+        
+        label = _sources[overlay]['label']
+        startstr = datetime.strftime(now, '%b %-d')
+        tomorrow = now + timedelta(days=1)
+        if now.month == tomorrow.month:
+            endstr = datetime.strftime(tomorrow, '%-d, %Y')
+        else:
+            endstr = datetime.strftime(tomorrow, '%b %-d, %Y')
+        msg = '{l} forecast for {s}-{e}'.format(l=label, s=startstr, e=endstr)
+        print("Tweeting: ", msg)
+        post = api.update_status(msg,
+                                 in_reply_to_status_id=post.id,
+                                 media_ids=[resp.media_id])
+        print("Success: post ID = ", post.id)
+    
+    
+    
 
